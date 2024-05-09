@@ -1,23 +1,43 @@
-//Budget app
-import React, { useContext, useState } from 'react';
-import { AppContext } from '../context/AppContext';
+import React, {useState, useContext} from 'react';
+import {AppContext} from '../context/AppContext';
 
 const Budget = () => {
-    const { budget } = useContext(AppContext);
+    const {expenses, budget, currency, dispatch } = useContext(AppContext);
     const [newBudget, setNewBudget] = useState(budget);
-    const handleBudgetChange = (event) => {
-        const inputValue = event.target.value;
-        if (!isNaN(inputValue) && inputValue <= budget) {
-            setNewBudget(inputValue);
-        } else {
-            alert(`The value cannot exceed remaining funds £${budget}`);
-        }
-    }
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        dispatch({type:'SET_BUDGET', payload:newBudget});
+    };
+
+    const totalExpenses = expenses.reduce((total, item) => {
+        return (total += item.cost);
+    }, 0);
 
     return (
         <div className='alert alert-secondary'>
-            <span>Budget: £{budget}</span>
-            <input type="number" step="10" value={newBudget} onChange={handleBudgetChange}></input>
+        Budget: <b>{currency}</b>
+        <input 
+            type="number"
+            step={10}
+            value={`${newBudget}`}
+            onChange={(e) => {
+                const upperLimit = 20000;
+                const updatedBudget = Number(e.target.value);
+                
+                console.log(`total expenses: ${totalExpenses}`);
+                if (updatedBudget <= upperLimit && updatedBudget >= totalExpenses) {
+                    setNewBudget(Number(updatedBudget));
+                    handleSubmit(e);
+                }
+                else if (updatedBudget < totalExpenses) {
+                    alert('Budget cannot be less than total spending!');
+                }
+                else {
+                    alert(`Budget cannot exceed ${currency} ${upperLimit}`)
+                }
+            }}
+        />
         </div>
     );
 };
